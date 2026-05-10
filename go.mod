@@ -1,4 +1,4 @@
-module github.com/Szotasz/conn-cli
+module github.com/Szotasz/connectors-cli
 
 go 1.25.0
 

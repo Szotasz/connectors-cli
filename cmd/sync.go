@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Szotasz/conn-cli/internal/api"
-	"github.com/Szotasz/conn-cli/internal/manifest"
+	"github.com/Szotasz/connectors-cli/internal/api"
+	"github.com/Szotasz/connectors-cli/internal/manifest"
 )
 
 var syncCmd = &cobra.Command{
@@ -14,7 +14,7 @@ var syncCmd = &cobra.Command{
 	Short: "Fetch latest tool manifest from connectors.hu",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if cfg.Token == "" {
-			return fmt.Errorf("CONN_HU_TOKEN not set. Export your API key first:\n  export CONN_HU_TOKEN=cnk_your_api_key")
+			return fmt.Errorf("CONNECTORS_HU_TOKEN not set. Export your API key first:\n  export CONNECTORS_HU_TOKEN=cnk_your_api_key")
 		}
 
 		client := api.New(cfg)

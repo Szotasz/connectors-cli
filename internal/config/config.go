@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -12,14 +13,23 @@ type Config struct {
 }
 
 func Load() *Config {
-	token := os.Getenv("CONN_HU_TOKEN")
-	baseURL := os.Getenv("CONN_HU_URL")
+	token := os.Getenv("CONNECTORS_HU_TOKEN")
+	if token == "" {
+		if legacy := os.Getenv("CONN_HU_TOKEN"); legacy != "" {
+			fmt.Fprintln(os.Stderr, "Warning: CONN_HU_TOKEN is deprecated, use CONNECTORS_HU_TOKEN")
+			token = legacy
+		}
+	}
+	baseURL := os.Getenv("CONNECTORS_HU_URL")
+	if baseURL == "" {
+		baseURL = os.Getenv("CONN_HU_URL")
+	}
 	if baseURL == "" {
 		baseURL = "https://api.connectors.hu"
 	}
 
 	home, _ := os.UserHomeDir()
-	dataDir := filepath.Join(home, ".config", "conn-hu")
+	dataDir := filepath.Join(home, ".config", "connectors-hu")
 
 	return &Config{
 		Token:   token,

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/Szotasz/conn-cli/internal/api"
-	"github.com/Szotasz/conn-cli/internal/config"
+	"github.com/Szotasz/connectors-cli/internal/api"
+	"github.com/Szotasz/connectors-cli/internal/config"
 )
 
 func Save(cfg *config.Config, m *api.Manifest) error {

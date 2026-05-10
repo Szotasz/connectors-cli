@@ -21,13 +21,13 @@ jobs:
       - name: Build binaries
         run: |
           VERSION=${GITHUB_REF_NAME}
-          LDFLAGS="-s -w -X github.com/Szotasz/conn-cli/cmd.Version=${VERSION}"
+          LDFLAGS="-s -w -X github.com/Szotasz/connectors-cli/cmd.Version=${VERSION}"
 
-          GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/conn-darwin-arm64 .
-          GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/conn-darwin-amd64 .
-          GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/conn-linux-amd64 .
-          GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/conn-linux-arm64 .
-          GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/conn-windows-amd64.exe .
+          GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/connectors-darwin-arm64 .
+          GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/connectors-darwin-amd64 .
+          GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/connectors-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/connectors-linux-arm64 .
+          GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/connectors-windows-amd64.exe .
 
       - name: Create release
         uses: softprops/action-gh-release@v2

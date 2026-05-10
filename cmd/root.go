@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Szotasz/conn-cli/internal/config"
-	"github.com/Szotasz/conn-cli/internal/manifest"
+	"github.com/Szotasz/connectors-cli/internal/config"
+	"github.com/Szotasz/connectors-cli/internal/manifest"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "conn",
+	Use:   "connectors",
 	Short: "connectors.hu CLI -- Hungarian business API gateway",
 	Long:  "Query and manage Hungarian business APIs (Billingo, NAV, MiniCRM) through connectors.hu.",
 }
@@ -98,6 +98,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("conn", Version)
+		fmt.Println("connectors", Version)
 	},
 }

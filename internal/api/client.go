@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Szotasz/conn-cli/internal/config"
+	"github.com/Szotasz/connectors-cli/internal/config"
 )
 
 type Client struct {

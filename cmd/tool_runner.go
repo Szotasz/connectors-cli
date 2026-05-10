@@ -9,13 +9,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Szotasz/conn-cli/internal/api"
+	"github.com/Szotasz/connectors-cli/internal/api"
 )
 
 func makeToolRunner(connectorID, command string, argDefs []api.Arg) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, _ []string) error {
 		if cfg.Token == "" {
-			return fmt.Errorf("CONN_HU_TOKEN not set. Export your API key first:\n  export CONN_HU_TOKEN=cnk_your_api_key")
+			return fmt.Errorf("CONNECTORS_HU_TOKEN not set. Export your API key first:\n  export CONNECTORS_HU_TOKEN=cnk_your_api_key")
 		}
 
 		args := map[string]interface{}{}
