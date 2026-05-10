@@ -1,0 +1,4 @@
+conn
+*.exe
+dist/
+.env
