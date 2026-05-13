@@ -18,7 +18,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "connectors",
 	Short: "connectors.hu CLI -- Hungarian business API gateway",
-	Long:  "Query and manage Hungarian business APIs (Billingo, NAV, MiniCRM) through connectors.hu.",
+	Long:  "Query and manage business APIs through connectors.hu (Billingo, NAV, MiniCRM, UNAS, fal.ai). Run `connectors sync` to pick up new connectors and tools.",
 }
 
 func init() {

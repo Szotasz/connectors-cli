@@ -20,10 +20,22 @@ func UpdateSkill(m *api.Manifest) error {
 		return err
 	}
 
+	// Dynamic description from the manifest's connector list — keeps the
+	// skill description fresh as new connectors land (UNAS, fal.ai, etc.)
+	// without requiring a CLI rebuild.
+	connectorNames := make([]string, 0, len(m.Connectors))
+	for _, c := range m.Connectors {
+		connectorNames = append(connectorNames, c.Name)
+	}
+	connectorList := strings.Join(connectorNames, ", ")
+	if connectorList == "" {
+		connectorList = "various services"
+	}
+
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	sb.WriteString("name: connectors-hu\n")
-	sb.WriteString("description: CLI for connectors.hu -- Hungarian business API gateway (Billingo, NAV, MiniCRM). Use when user asks to query invoices, partners, tax data, or any connectors.hu operation.\n")
+	sb.WriteString(fmt.Sprintf("description: CLI for connectors.hu -- business API gateway (%s). Use when user asks to query invoices, partners, tax data, generate AI images, or any connectors.hu operation.\n", connectorList))
 	sb.WriteString("---\n\n")
 	sb.WriteString("# connectors -- connectors.hu CLI\n\n")
 	sb.WriteString("Run `connectors <connector> <command> [flags]` to call connectors.hu APIs.\n\n")
