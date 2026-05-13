@@ -41,6 +41,22 @@ func makeToolRunner(connectorID, command string, argDefs []api.Arg) func(*cobra.
 				if cmd.Flags().Changed(a.Name) {
 					args[a.Name] = v
 				}
+			case "object", "array":
+				// Object/array params arrive as JSON strings on the CLI flag
+				// (e.g. `--params '{"prompt":"..."}'`). Parse them into native
+				// Go values so the backend receives a proper map/slice and
+				// not a raw JSON-encoded string.
+				v, err := cmd.Flags().GetString(a.Name)
+				if err != nil {
+					return err
+				}
+				if v != "" {
+					var parsed interface{}
+					if err := json.Unmarshal([]byte(v), &parsed); err != nil {
+						return fmt.Errorf("invalid JSON for --%s: %w", a.Name, err)
+					}
+					args[a.Name] = parsed
+				}
 			default:
 				v, err := cmd.Flags().GetString(a.Name)
 				if err != nil {
