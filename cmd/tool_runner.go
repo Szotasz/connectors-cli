@@ -41,6 +41,18 @@ func makeToolRunner(connectorID, command string, argDefs []api.Arg) func(*cobra.
 				if cmd.Flags().Changed(a.Name) {
 					args[a.Name] = v
 				}
+			case "object", "array":
+				v, err := cmd.Flags().GetString(a.Name)
+				if err != nil {
+					return err
+				}
+				if v != "" {
+					parsed, perr := parseJSONArg(a.Name, a.Type, v)
+					if perr != nil {
+						return perr
+					}
+					args[a.Name] = parsed
+				}
 			default:
 				v, err := cmd.Flags().GetString(a.Name)
 				if err != nil {
@@ -86,6 +98,31 @@ func makeToolRunner(connectorID, command string, argDefs []api.Arg) func(*cobra.
 		fmt.Println()
 		return nil
 	}
+}
+
+// parseJSONArg decodes an object/array-typed flag value into the real JSON
+// value before it travels to the gateway. Through v0.3.0 the raw string was
+// forwarded as-is, so the server-side validator indexed into a *string*
+// ("Missing required parameter" for the first required field, regardless of
+// the flag's content -- reported by a customer on `falai generate`,
+// 2026-08-23). Invalid JSON now fails HERE with a message that names the
+// flag, instead of travelling to the server as a bogus string.
+func parseJSONArg(name, argType, raw string) (interface{}, error) {
+	var parsed interface{}
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		return nil, fmt.Errorf("--%s must be valid JSON (%s): %v", name, argType, err)
+	}
+	switch argType {
+	case "object":
+		if _, ok := parsed.(map[string]interface{}); !ok {
+			return nil, fmt.Errorf("--%s must be a JSON object, e.g. '{\"key\":\"value\"}'", name)
+		}
+	case "array":
+		if _, ok := parsed.([]interface{}); !ok {
+			return nil, fmt.Errorf("--%s must be a JSON array, e.g. '[1,2]'", name)
+		}
+	}
+	return parsed, nil
 }
 
 // renderMcpContent inspects the tool result for an MCP `content` array. If
