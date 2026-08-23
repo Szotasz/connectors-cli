@@ -1,0 +1,9 @@
+# E2E verify manifest (fleet convention, 2026-08-22): every paid call a script
+# in this repo makes must be declared here; scripts/e2e-verify.sh refuses to
+# run (non-zero exit) when this file is missing.
+paid_steps:
+  - provider: fal.ai
+    model: fal-ai/flux/schnell
+    unit: kep
+    multiplier: 1
+    note: post-fix e2e verify (PR #4 object-flag parse) -- one cheap image per verify run
