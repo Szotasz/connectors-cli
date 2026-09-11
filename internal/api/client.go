@@ -6,17 +6,28 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/Szotasz/connectors-cli/internal/config"
 )
 
 type Client struct {
-	cfg    *config.Config
-	http   *http.Client
+	cfg  *config.Config
+	http *http.Client
 }
 
+// A 60s ceiling is generous for any single tool call but still bounded —
+// without it a hostile or hung upstream server hangs every CLI invocation
+// indefinitely (e.g. when Claude Code drives the CLI inside a skill).
+const defaultHTTPTimeout = 60 * time.Second
+
 func New(cfg *config.Config) *Client {
-	return &Client{cfg: cfg, http: &http.Client{}}
+	return &Client{
+		cfg: cfg,
+		http: &http.Client{
+			Timeout: defaultHTTPTimeout,
+		},
+	}
 }
 
 func (c *Client) FetchManifest() (*Manifest, error) {
@@ -34,16 +45,20 @@ func (c *Client) FetchManifest() (*Manifest, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
 	}
 
 	var m Manifest
-	if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxResponseBytes)).Decode(&m); err != nil {
 		return nil, fmt.Errorf("decode manifest: %w", err)
 	}
 	return &m, nil
 }
+
+// 16 MiB is well above what a real manifest or a single MCP tool response
+// would ever need, and small enough that a hostile server can't OOM us.
+const maxResponseBytes = 16 * 1024 * 1024
 
 type McpToolCall struct {
 	Jsonrpc string      `json:"jsonrpc"`
@@ -101,7 +116,7 @@ func (c *Client) CallTool(connectorID, toolName string, args map[string]interfac
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
 	}
