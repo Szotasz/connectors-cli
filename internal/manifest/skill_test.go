@@ -148,3 +148,37 @@ func TestEveryReferenceIsLinkedAndNoTempFileLeft(t *testing.T) {
 		}
 	}
 }
+
+func TestHandWrittenReferenceAtAGeneratedPathIsBackedUp(t *testing.T) {
+	dir := t.TempDir()
+	refDir := filepath.Join(dir, "references")
+	if err := os.MkdirAll(refDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	hand := "## NAV\n\nhand-written warning about query_taxpayer\n"
+	navPath := filepath.Join(refDir, "nav.md")
+	if err := os.WriteFile(navPath, []byte(hand), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 2; i++ { // a second sync must not clobber the backup
+		if err := updateSkillAt(dir, testManifest()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := read(t, navPath+".bak-sync"); got != hand {
+		t.Errorf("backup = %q, want the hand-written file", got)
+	}
+	if !strings.HasPrefix(read(t, navPath), GeneratedMarker) {
+		t.Error("the generated reference must replace it")
+	}
+	entries, err := os.ReadDir(refDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".tmp") {
+			t.Errorf("temp file left behind: %s", e.Name())
+		}
+	}
+}

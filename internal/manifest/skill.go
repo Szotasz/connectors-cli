@@ -60,8 +60,11 @@ func updateSkillAt(skillDir string, m *api.Manifest) error {
 	for _, c := range m.Connectors {
 		name := referenceFileName(c.ID)
 		keep[name] = true
-		body := renderReference(c, toolsByConnector[c.ID])
-		if err := writeFileAtomic(filepath.Join(refDir, name), body); err != nil {
+		path := filepath.Join(refDir, name)
+		if err := backupIfNotGenerated(path); err != nil {
+			return err
+		}
+		if err := writeFileAtomic(path, renderReference(c, toolsByConnector[c.ID])); err != nil {
 			return err
 		}
 	}
@@ -192,15 +195,42 @@ func preserveLocalNotes(skillPath, skillDir string) (string, error) {
 		return strings.TrimPrefix(notes, "\n"), nil
 	}
 
-	backup := filepath.Join(skillDir, unmarkedBackupName)
-	if prev, err := os.ReadFile(backup); err == nil && string(prev) == text {
-		return "", nil
-	}
-	if err := writeFileAtomic(backup, text); err != nil {
+	if err := saveBackup(skillPath, filepath.Join(skillDir, unmarkedBackupName), text,
+		"had no local-notes markers"); err != nil {
 		return "", err
 	}
-	fmt.Printf("Note: %s had no local-notes markers; the previous version is saved as %s.\n", skillPath, backup)
 	return "", nil
+}
+
+// backupIfNotGenerated protects an operator's file that happens to sit at a
+// generated reference path (e.g. a hand-split references/billingo.md): it is
+// saved as <name>.bak-sync before the generator overwrites it. The same rule
+// as removeStaleReferences: a file without the marker is the operator's.
+func backupIfNotGenerated(path string) error {
+	raw, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if strings.HasPrefix(string(raw), GeneratedMarker) {
+		return nil
+	}
+	return saveBackup(path, path+".bak-sync", string(raw), "was not written by `connectors sync`")
+}
+
+// saveBackup writes text to backup unless that exact content is already
+// saved there, and says so on stdout.
+func saveBackup(path, backup, text, why string) error {
+	if prev, err := os.ReadFile(backup); err == nil && string(prev) == text {
+		return nil
+	}
+	if err := writeFileAtomic(backup, text); err != nil {
+		return err
+	}
+	fmt.Printf("Note: %s %s; the previous version is saved as %s.\n", path, why, backup)
+	return nil
 }
 
 // removeStaleReferences deletes generated reference files of connectors that
