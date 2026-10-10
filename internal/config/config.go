@@ -48,6 +48,11 @@ func Load() *Config {
 	}
 }
 
+// validateBaseURL allows https, and plain http only for the loopback names
+// "localhost" and "127.0.0.1", and only with CONNECTORS_HU_ALLOW_INSECURE=1.
+// The IPv6 loopback ([::1]) is deliberately NOT on that list: the exception is
+// kept to the two names a local dev server is normally reached by, and a test
+// pins that ::1 is refused even with the flag.
 func validateBaseURL(raw string) error {
 	parsed, err := url.Parse(raw)
 	if err != nil {
